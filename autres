@@ -1,0 +1,111 @@
+#!/bin/bash
+clear
+echo ""
+echo ""
+echo ""
+echo -e " ███████████       ███████          ███████       █████           █████████ 
+░█░░░███░░░█     ███░░░░░███      ███░░░░░███    ░░███           ███░░░░░███
+░   ░███  ░     ███     ░░███    ███     ░░███    ░███          ░███    ░░░ 
+    ░███       ░███      ░███   ░███      ░███    ░███          ░░█████████ 
+    ░███       ░███      ░███   ░███      ░███    ░███           ░░░░░░░░███
+    ░███       ░░███     ███    ░░███     ███     ░███      █    ███    ░███
+    █████       ░░░███████░      ░░░███████░      ███████████   ░░█████████ 
+   ░░░░░          ░░░░░░░          ░░░░░░░       ░░░░░░░░░░░     ░░░░░░░░░  "
+echo ""
+echo ""
+echo ""
+
+encode_base64() {
+  read -p "Texte à encoder : " texte
+  echo -n "$texte" | base64
+}
+
+decode_base64() {
+  read -p "Base64 à décoder : " b64
+  echo "$b64" | base64 -d
+}
+
+encode_base85() {
+  read -p "Texte à encoder : " texte
+  echo -n "$texte" | base85
+}
+
+decode_base85() {
+  read -p "Base85 à décoder : " b85
+  echo "$b85" | base85 -d
+}
+
+encode_hex() {
+  read -p "Texte à encoder : " texte
+  echo -n "$texte" | xxd -p
+}
+
+decode_hex() {
+  read -p "Hex à décoder : " hex
+  echo "$hex" | xxd -r -p
+}
+
+encode_url() {
+  read -p "Texte à encoder (URL) : " txt
+  python3 -c "import urllib.parse; print(urllib.parse.quote('''$txt'''))"
+}
+
+decode_url() {
+  read -p "Texte encodé URL à décoder : " txt
+  python3 -c "import urllib.parse; print(urllib.parse.unquote('''$txt'''))"
+}
+
+convert_cert_format() {
+  echo "1. PEM -> DER"
+  echo "2. DER -> PEM"
+  echo "3. PEM -> PKCS#12 (.p12)"
+  read -p "Choix de conversion : " chx
+  read -p "Fichier source : " src
+  read -p "Fichier de sortie : " dst
+
+  case $chx in
+    1) openssl x509 -in "$src" -outform DER -out "$dst" ;;
+    2) openssl x509 -in "$src" -inform DER -out "$dst" ;;
+    3) 
+      read -p "Clé privée associée : " key
+      openssl pkcs12 -export -out "$dst" -inkey "$key" -in "$src"
+      ;;
+    *) echo "❌ Choix invalide" ;;
+  esac
+}
+
+generate_secure_random() {
+  read -p "Nombre d'octets à générer : " nb
+  openssl rand -hex "$nb"
+}
+
+while true; do
+  echo -e "\e[1;36m====== Menu outils encodage/conversion OpenSSL ======\e[0m"
+  echo "1. Encoder en Base64"
+  echo "2. Décoder en Base64"
+  echo "3. Encoder en Base85"
+  echo "4. Décoder en Base85"
+  echo "5. Encoder en Hexadécimal"
+  echo "6. Décoder en Hexadécimal"
+  echo "7. Encoder en URL"
+  echo "8. Décoder en URL"
+  echo "9. Conversion de certificats (PEM, DER, P12)"
+  echo "10. Générer nombre aléatoire sécurisé (hex)"
+  echo "11. Retour"
+  read -p "Ton choix : " choix
+
+  case $choix in
+    1) encode_base64 ;;
+    2) decode_base64 ;;
+    3) encode_base85 ;;
+    4) decode_base85 ;;
+    5) encode_hex ;;
+    6) decode_hex ;;
+    7) encode_url ;;
+    8) decode_url ;;
+    9) convert_cert_format ;;
+    10) generate_secure_random ;;
+    11) echo "🔒 Fermeture..."; bash ./project;  break ;;
+    *) echo "❌ Choix invalide" ;;
+  esac
+done

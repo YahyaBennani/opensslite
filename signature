@@ -1,0 +1,84 @@
+#!/bin/bash
+clear
+echo ""
+echo ""
+echo ""
+echo -e "  █████████     █████      █████████     ██████   █████      █████████      ███████████    █████  █████    ███████████      ██████████
+ ███░░░░░███   ░░███      ███░░░░░███   ░░██████ ░░███      ███░░░░░███    ░█░░░███░░░█   ░░███  ░░███    ░░███░░░░░███    ░░███░░░░░█
+░███    ░░░     ░███     ███     ░░░     ░███░███ ░███     ░███    ░███    ░   ░███  ░     ░███   ░███     ░███    ░███     ░███  █ ░ 
+░░█████████     ░███    ░███             ░███░░███░███     ░███████████        ░███        ░███   ░███     ░██████████      ░██████   
+ ░░░░░░░░███    ░███    ░███    █████    ░███ ░░██████     ░███░░░░░███        ░███        ░███   ░███     ░███░░░░░███     ░███░░█   
+ ███    ░███    ░███    ░░███  ░░███     ░███  ░░█████     ░███    ░███        ░███        ░███   ░███     ░███    ░███     ░███ ░   █
+░░█████████     █████    ░░█████████     █████  ░░█████    █████   █████       █████       ░░████████      █████   █████    ██████████
+ ░░░░░░░░░     ░░░░░      ░░░░░░░░░     ░░░░░    ░░░░░    ░░░░░   ░░░░░       ░░░░░         ░░░░░░░░      ░░░░░   ░░░░░    ░░░░░░░░░░ "
+echo ""
+echo ""
+echo ""
+
+sign_file() {
+  read -p "📄 Fichier à signer : " fichier
+  if [[ ! -f "$fichier" ]]; then
+    echo "❌ Fichier introuvable."
+    return
+  fi
+
+  read -p "🔐 Chemin vers la clé privée (.pem) : " privkey
+  if [[ ! -f "$privkey" ]]; then
+    echo "❌ Clé privée introuvable."
+    return
+  fi
+
+  sig_file="${fichier}_sig"
+  openssl dgst -sha256 -sign "$privkey" -out "$sig_file" "$fichier"
+
+  if [[ $? -eq 0 ]]; then
+    echo "✅ Signature générée avec succès : $sig_file"
+  else
+    echo "❌ Échec de la signature."
+  fi
+}
+
+verify_signature() {
+  read -p "📄 Fichier original : " fichier
+  if [[ ! -f "$fichier" ]]; then
+    echo "❌ Fichier introuvable."
+    return
+  fi
+
+  read -p "📄 Fichier signature (_sig) : " sig_file
+  if [[ ! -f "$sig_file" ]]; then
+    echo "❌ Fichier de signature introuvable."
+    return
+  fi
+
+  read -p "🔓 Clé publique (.pem) : " pubkey
+  if [[ ! -f "$pubkey" ]]; then
+    echo "❌ Clé publique introuvable."
+    return
+  fi
+
+  openssl dgst -sha256 -verify "$pubkey" -signature "$sig_file" "$fichier"
+  if [[ $? -eq 0 ]]; then
+    echo "✅ Signature valide !"
+  else
+    echo "❌ Signature invalide ou fichier modifié."
+  fi
+}
+
+# Menu principal
+while true; do
+  echo ""
+  echo -e "\e[1;36m====== ✍️ Signature Numérique OpenSSL ======\e[0m"
+  echo "1. Signer un fichier"
+  echo "2. Vérifier une signature"
+  echo "3. Retour"
+  echo "==========================================="
+  read -p "🎯 Ton choix : " choix
+
+  case "$choix" in
+    1) sign_file ;;
+    2) verify_signature ;;
+    3) echo "↩️ Retour au menu précédent..."; bash ./project; break ;;
+    *) echo "❌ Choix invalide." ;;
+  esac
+done

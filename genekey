@@ -1,0 +1,99 @@
+#!/bin/bash
+clear
+echo ""
+echo ""
+echo ""
+echo -e " ███████████       █████████      █████    ███████████      ██████████       ██████████      ██████████         █████████     █████          ██████████     █████████ 
+░░███░░░░░███     ███░░░░░███    ░░███    ░░███░░░░░███    ░░███░░░░░█      ░░███░░░░███    ░░███░░░░░█        ███░░░░░███   ░░███          ░░███░░░░░█    ███░░░░░███
+ ░███    ░███    ░███    ░███     ░███     ░███    ░███     ░███  █ ░        ░███   ░░███    ░███  █ ░        ███     ░░░     ░███           ░███  █ ░    ░███    ░░░ 
+ ░██████████     ░███████████     ░███     ░██████████      ░██████          ░███    ░███    ░██████         ░███             ░███           ░██████      ░░█████████ 
+ ░███░░░░░░      ░███░░░░░███     ░███     ░███░░░░░███     ░███░░█          ░███    ░███    ░███░░█         ░███             ░███           ░███░░█       ░░░░░░░░███
+ ░███            ░███    ░███     ░███     ░███    ░███     ░███ ░   █       ░███    ███     ░███ ░   █      ░░███     ███    ░███      █    ░███ ░   █    ███    ░███
+ █████           █████   █████    █████    █████   █████    ██████████       ██████████      ██████████       ░░█████████     ███████████    ██████████   ░░█████████ 
+░░░░░           ░░░░░   ░░░░░    ░░░░░    ░░░░░   ░░░░░    ░░░░░░░░░░       ░░░░░░░░░░      ░░░░░░░░░░         ░░░░░░░░░     ░░░░░░░░░░░    ░░░░░░░░░░     ░░░░░░░░░  "
+# Fonction de génération pour chaque algorithme
+generate_key() {
+  algo=$1
+
+  read -p "🔑 Nom de base pour vos clés : " nom
+  if [[ -z "$nom" ]]; then
+    echo "❌ Le nom ne peut pas être vide."
+    return
+  fi
+
+  case "$algo" in
+    RSA)
+      read -p "📏 Taille de la clé RSA (2048 ou 4096) : " bits
+      openssl genpkey  -algorithm RSA -out "priv_key_${nom}.pem" -pkeyopt rsa_keygen_bits:$bits
+      openssl rsa -in "priv_key_${nom}.pem" -pubout -out "pub_key_${nom}.pem"
+      ;;
+    DSA)
+      read -p "📏 Taille de la clé DSA (1024, 2048, 3072) : " bits
+      openssl dsaparam -out dsa_param.pem $bits
+      openssl gendsa -out "priv_key_${nom}.pem" dsa_param.pem
+      openssl dsa -in "priv_key_${nom}.pem" -pubout -out "pub_key_${nom}.pem"
+      rm -f dsa_param.pem
+      ;;
+    EC)
+      echo "📋 Courbes disponibles (extrait) :"
+      openssl ecparam -list_curves | head -n 15
+      read -p "🌀 Nom de la courbe (ex: secp384r1) : " curve
+      openssl ecparam -name "$curve" -genkey -noout -out "priv_key_${nom}.pem"
+      openssl ec -in "priv_key_${nom}.pem" -pubout -out "pub_key_${nom}.pem"
+      ;;
+    ED25519)
+      openssl genpkey -algorithm ED25519 -out "priv_key_${nom}.pem"
+      openssl pkey -in "priv_key_${nom}.pem" -pubout -out "pub_key_${nom}.pem"
+      ;;
+    ED448)
+      openssl genpkey -algorithm ED448 -out "priv_key_${nom}.pem"
+      openssl pkey -in "priv_key_${nom}.pem" -pubout -out "pub_key_${nom}.pem"
+      ;;
+    X25519)
+      openssl genpkey -algorithm X25519 -out "priv_key_${nom}.pem"
+      openssl pkey -in "priv_key_${nom}.pem" -pubout -out "pub_key_${nom}.pem"
+      ;;
+    *)
+      echo "❌ Algorithme inconnu."
+      return
+      ;;
+  esac
+
+  read -p "🔐 Souhaitez-vous protéger la clé privée par mot de passe ? [Y/N] " secure
+  if [[ "$secure" == "Y" || "$secure" == "y" ]]; then
+    openssl pkey -in "priv_key_${nom}.pem" -aes256 -out "priv_key_${nom}_secure.pem"
+    rm "priv_key_${nom}.pem"
+    echo "✅ Paires de clés générées :"
+    echo "🔒 Clé privée chiffrée avec AES256."
+    echo "  🔒 priv_key_${nom}_secure.pem"
+    echo "  🔓 pub_key_${nom}.pem"
+  else
+  	echo "✅ Paires de clés générées :"
+  	echo "  🔒 priv_key_${nom}.pem"
+  	echo "  🔓 pub_key_${nom}.pem"
+  fi
+}
+# Menu interactif
+while true; do
+  echo ""
+  echo "====== Générateur de clés asymétriques OpenSSL ======"
+  echo "1. RSA (Chiffrement, signature) "
+  echo "2. DSA (Signature) "
+  echo "3. EC (Elliptic Curve)(Signature, échange de clés (ECDH)) "
+  echo "4. ED25519 (Signature moderne rapide) "
+  echo "5. ED448 (Signature) "
+  echo "6. X25519 (Échange de clé (ECDH)) "
+  echo "7. Retour"
+  echo "====================================================="
+  read -p "Ton choix : " choix
+  case "$choix" in
+    1) generate_key RSA ;;
+    2) generate_key DSA ;;
+    3) generate_key EC ;;
+    4) generate_key ED25519 ;;
+    5) generate_key ED448 ;;
+    6) generate_key X25519 ;;
+    7) clear ; bash ./project; break ;;
+    *) echo "❌ Choix invalide." ;;
+  esac
+done
