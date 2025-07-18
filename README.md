@@ -3,7 +3,7 @@
 🛡️ **OpenSSLite** est un outil en ligne de commande interactif basé sur Bash, qui simplifie l'utilisation des principales fonctionnalités de la suite OpenSSL. Il s'adresse aussi bien aux étudiants, aux pentesters qu'aux passionnés de cybersécurité souhaitant automatiser certaines tâches courantes.
 
 ## 📌 Fonctionnalités
-### 🏛️ PKI (Public Key Infrastructure)
+- 🏛️ PKI (Public Key Infrastructure)
 - **Génération automatique d'une hiérarchie PKI à 3 niveaux** :
   - Root CA
   - Intermediate CA
@@ -11,7 +11,7 @@
 - **Création de certificats X.509**
 - **Vérification de certificats** (avec chaîne complète)
 
-### 🗝️ Coffre-fort numérique
+- 🗝️ Coffre-fort numérique
 - **Stockage structuré et sécurisé** :
   - Clés privées
   - Certificats
@@ -19,8 +19,6 @@
   - Fichiers chiffrés
 - **Accès organisé** par utilisateur / usage
 - **Protection par mot de passe (optionnelle)**
-
----
 
 - 🔐 **Encodage/Décodage** :
   - Base64
