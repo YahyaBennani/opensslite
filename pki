@@ -1,0 +1,167 @@
+#!/bin/bash
+clear 
+echo ""
+echo ""
+echo ""   
+echo -e " ███████████     █████   ████    █████     ████████     ██████   █████    █████    █████   █████    ██████████      █████████      █████  █████    █████ █████
+░░███░░░░░███   ░░███   ███░    ░░███     ███░░░░███   ░░██████ ░░███    ░░███    ░░███   ░░███    ░░███░░░░░█     ███░░░░░███    ░░███  ░░███    ░░███ ░░███ 
+ ░███    ░███    ░███  ███       ░███    ░░░    ░███    ░███░███ ░███     ░███     ░███    ░███     ░███  █ ░     ░███    ░███     ░███   ░███     ░░███ ███  
+ ░██████████     ░███████        ░███       ██████░     ░███░░███░███     ░███     ░███    ░███     ░██████       ░███████████     ░███   ░███      ░░█████   
+ ░███░░░░░░      ░███░░███       ░███      ░░░░░░███    ░███ ░░██████     ░███     ░░███   ███      ░███░░█       ░███░░░░░███     ░███   ░███       ███░███  
+ ░███            ░███ ░░███      ░███     ███   ░███    ░███  ░░█████     ░███      ░░░█████░       ░███ ░   █    ░███    ░███     ░███   ░███      ███ ░░███ 
+ █████           █████ ░░████    █████   ░░████████     █████  ░░█████    █████       ░░███         ██████████    █████   █████    ░░████████      █████ █████
+░░░░░           ░░░░░   ░░░░    ░░░░░     ░░░░░░░░     ░░░░░    ░░░░░    ░░░░░         ░░░         ░░░░░░░░░░    ░░░░░   ░░░░░      ░░░░░░░░      ░░░░░ ░░░░░ "   
+echo ""   
+echo ""   
+echo ""
+
+setup_dirs() {
+  read -p "Entrez le repertoire de base (chemin complet ex: /home/kali/project/p (par defaut)) : " BASE_DIR
+  nouvelle_phrase="dir             = $BASE_DIR                # Where everything is kept"
+  ancienne_phrase="dir             = /usr/local/ssl                # Where everything is kept"
+  ancienne_phrase1="dir             = /home/anas/ssl                # Where everything is kept"
+
+  # Effectue le remplacement dans les fichiers de configuration
+  sed -i "s|$ancienne_phrase|$nouvelle_phrase|g" ca-server-cert.cnf
+  sed -i "s|$ancienne_phrase1|$nouvelle_phrase|g" ca-subca-cert.cnf
+  sed -i "s|$ancienne_phrase|$nouvelle_phrase|g" ca-user-cert.cnf
+  if [ ! -d "$BASE_DIR" ]; then
+    echo "[+] Le dossier '$BASE_DIR' n'existe pas. Création en cours..."
+    mkdir -p "$BASE_DIR"
+  else
+    echo "[+] Le dossier '$dir' existe déjà."
+  fi
+  cp ca-server-cert.cnf ca-subca-cert.cnf ca-user-cert.cnf req-server-cert.cnf req-subca-cert.cnf req-user-cert.cnf root-ca-cert.cnf "$BASE_DIR"
+  echo "[+] Création de la structure de dossiers dans $BASE_DIR"
+  mkdir -p "$BASE_DIR"/{certs,crl,newcerts,private,req}
+  cd "$BASE_DIR" || exit 1
+  chmod 700 private
+  echo "01" > serial
+  touch index.txt
+  echo "[+] Structure prête"
+}
+
+create_root_ca() {
+  echo "[+] Création de la clé privée et certificat auto-signé de la Root CA"
+  read -p "Nombre de jours de validité : " nb
+  openssl req -x509 -config root-ca-cert.cnf -newkey rsa:2048 -days "$nb" -keyout private/ca.key -out certs/ca.pem
+  echo "[+] Vérification du certificat Root CA"
+  openssl x509 -in certs/ca.pem -noout -text | head -20
+  echo "[+] Création des liens symboliques pour Root CA"
+  cd certs || exit 1
+  ln -sf ca.pem "$(openssl x509 -in ca.pem -noout -hash).0"
+  cd ..
+}
+
+create_server_ca() {
+  echo "[+] Création clé privée et CSR pour Server CA"
+  openssl req -config req-subca-cert.cnf -newkey rsa:2048 -keyout private/server_ca.key -out req/serverca.pem
+
+  echo "[+] Signature du CSR Server CA avec la Root CA"
+  openssl ca -config ca-subca-cert.cnf -in req/serverca.pem -out certs/server_ca.pem
+
+  echo "[+] Vérification du certificat Server CA"
+  openssl x509 -in certs/server_ca.pem -noout -text | head -20
+  cd certs || exit 1
+  echo "[+] Création des liens symboliques pour Server CA"
+  ln -sf server_ca.pem "$(openssl x509 -in server_ca.pem -noout -hash).0"
+  cd ..
+}
+
+create_server_cert() {
+  read -p "Nommez votre certificat : " nm
+  key = "server_${nm}.key"
+  cert = "server_${nm}.pem"
+  req = "req_server_${nm}.pem"
+  echo "[+] Création clé privée et CSR pour serveur final"
+  openssl req -config req-server-cert.cnf -newkey rsa:2048 -keyout "private/${key}" -out "req/${req}"
+
+  echo "[+] Signature du CSR serveur avec la Server CA"
+  openssl ca -config ca-server-cert.cnf -cert certs/server_ca.pem -keyfile private/server_ca.key -in "req/${req}" -out "certs/${cert}" -notext
+  echo "[+] Vérification du certificat serveur"
+  openssl x509 -in "certs/${cert}" -noout -text | head -20
+  cd certs || exit 1
+  echo "[+] Création des liens symboliques pour Server final"
+  ln -sf server.pem "$(openssl x509 -in server.pem -noout -hash).0"
+  }
+create() {
+  echo "[+] Avez vous verifier les repertoirs dans les dossier de configuration ?"
+  read -p "[+] Entrez le repertoire de base (chemin complet ex: /home/kali/project/p (par defaut)) : " BASE_DIR
+  cd "$BASE_DIR"
+  read -p "Nommez votre certificat du seveur final : " nm
+  key="server_${nm}.key"
+  cert="server_${nm}.pem"
+  req="req_server_${nm}.pem"
+  echo "[+] Création des dossiers si nécessaire"
+  mkdir -p private req certs
+
+  echo "[+] Création clé privée et CSR pour serveur final"
+  openssl req -config req-server-cert.cnf \
+    -newkey rsa:2048 \
+    -keyout "private/${key}" \
+    -out "req/${req}" || { echo "[-] Échec de création du CSR"; return 1; }
+
+  echo "[+] Signature du CSR serveur avec la Server CA"
+  openssl ca -batch -config ca-server-cert.cnf \
+    -cert certs/server_ca.pem \
+    -keyfile private/server_ca.key \
+    -in "req/${req}" \
+    -out "certs/${cert}" \
+    -notext || { echo "[-] Échec de la signature"; return 1; }
+
+  echo "[+] Vérification du certificat serveur"
+  openssl x509 -in "certs/${cert}" -noout -text | head -20
+
+  echo "[+] Création des liens symboliques pour Server final"
+  cd certs || { echo "[-] Impossible d'accéder au dossier certs"; return 1; }
+  ln -sf "${cert}" "$(openssl x509 -in ${cert} -noout -hash).0"
+  cd ..
+}
+
+createChain() {
+echo "[+] Avez vous verifier les repertoirs dans les dossier de configuration (verification de validité de certificat) ?"
+read -p "[+] Entrez le repertoire de base (chemin complet ex: /home/kali/project/p (par defaut)) : " BASE_DIR
+cd "$BASE_DIR"
+  echo "Assurez-vous que votre certificat est bien présent dans le répertoire certs/"
+  read -p "Nom du certificat à vérifier (doit être créé par l'autorité de cette PKI) : " nm
+  echo "[+] Création de la chaîne de certification"
+  cat certs/server_ca.pem certs/ca.pem > chain.pem
+  echo "[+] Vérification de la chaîne"
+  openssl verify -CAfile chain.pem "certs/$nm"
+}
+
+main() {
+  setup_dirs
+  create_root_ca
+  create_server_ca
+  create
+  createChain
+}
+
+check(){ echo "[+] Avez vous verifier les repertoirs dans les dossier de configuration ?"
+read -p "[+] Entrez le repertoire de base (chemin complet ex: /home/kali/project/p (par defaut)) : " BASE_DIR
+
+}
+while true; do
+  echo ""
+  echo -e "\e[1;36m====== PKI 3 niveaux OpenSSL ======\e[0m"
+  echo "------------- Avant de commencer --------------"
+  echo "Avant de commencer, notez que le bon fonctionnement de cet outil dépend des chemins configurés. Il est essentiel d’ouvrir les fichiers ca-server-cert.cnf, ca-subca-cert.cnf et ca-user-cert.cnf avec un éditeur de texte et de modifier manuellement la valeur de la variable $dir (ex. : /home/kali/project/p), car le script peut échouer à le faire automatiquement. Pour vérifier un certificat, assurez-vous d’être dans le répertoire du projet (vous devez voir les dossiers certs, newcerts, etc. en exécutant ls), placez le certificat à vérifier dans le dossier certs/, puis lancez la vérification. Elle retournera 'OK' si le certificat a été généré par la PKI actuelle, ou une erreur dans le cas contraire."
+  echo "----------------------------------------------" 
+  echo "1. Créer votre Public Key Infrastructure (PKI) pour créer des certificats numériques"
+  echo "2. Créer un certificat"
+  echo "3. Vérifier un certificat"
+  echo "4. Retour"
+  echo "Ce script utilise des fichiers de config extraits de /etc/ssl/openssl.conf"
+  echo "Veuillez lire ces fichiers dans le dossier conf et ajuster les champs de config selon vos besoins"
+  echo "==========================================="
+  read -p "🎯 Ton choix : " choix
+
+  case "$choix" in
+    1) clear ; main ;cd .. ;;
+    2) clear ; create ;cd .. ;;
+    3) clear ;createChain ;cd .. ;;
+    4) echo "↩ Retour au menu précédent..."; clear ; bash ./project ; break ;;
+    *) echo "❌ Choix invalide." ;;
+  esac
+done

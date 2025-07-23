@@ -1,0 +1,49 @@
+# pour generer un certificat root CA
+
+
+[ req ]
+default_bits		= 1024
+default_keyfile 	= private/ca.key
+default_md		= md5
+distinguished_name	= req_distinguished_name
+x509_extensions		= rootca_cert
+
+
+[ req_distinguished_name ]
+countryName			= Pays
+countryName_default		= FR
+countryName_min			= 2
+countryName_max			= 2
+
+stateOrProvinceName		= Etat, province ou departement
+stateOrProvinceName_default	= Essonne
+
+localityName			= Ville
+localityName_default		= Bourges
+
+organizationName		= Organisation
+organizationName_default	= ENSIB
+
+organizationalUnitName		= Unite organisationnelle
+organizationalUnitName_default	= STI
+
+commonName			= Nom commun
+commonName_default		= ENSIB STI Root CA
+commonName_max			= 64
+
+emailAddress			= anas.abouelkalam@ensi-bourges.fr
+emailAddress_max		= 64
+
+
+[ rootca_cert ]
+
+
+# la section ci-dessous decrit les extensions a inclure dans un certificat rootCA
+
+basicConstraints	= critical, CA:true
+subjectKeyIdentifier	= hash
+keyUsage		= critical, keyCertSign, cRLSign
+authorityKeyIdentifier	= keyid:always,issuer:always
+nsCertType		= sslCA, emailCA, objCA
+nsComment		= "Certificat Racine. Genere par OpenSSL"
+# subjectAltName	= email:copy

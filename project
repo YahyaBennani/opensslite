@@ -1,0 +1,123 @@
+#!/bin/bash
+clear
+while true; do
+echo""
+echo""
+echo""
+echo""
+echo "    ███████    ███████████  ██████████ ██████   █████  █████████   █████████  █████       █████ ███████████ ██████████
+  ███░░░░░███ ░░███░░░░░███░░███░░░░░█░░██████ ░░███  ███░░░░░███ ███░░░░░███░░███       ░░███ ░█░░░███░░░█░░███░░░░░█
+ ███     ░░███ ░███    ░███ ░███  █ ░  ░███░███ ░███ ░███    ░░░ ░███    ░░░  ░███        ░███ ░   ░███  ░  ░███  █ ░ 
+░███      ░███ ░██████████  ░██████    ░███░░███░███ ░░█████████ ░░█████████  ░███        ░███     ░███     ░██████   
+░███      ░███ ░███░░░░░░   ░███░░█    ░███ ░░██████  ░░░░░░░░███ ░░░░░░░░███ ░███        ░███     ░███     ░███░░█   
+░░███     ███  ░███         ░███ ░   █ ░███  ░░█████  ███    ░███ ███    ░███ ░███      █ ░███     ░███     ░███ ░   █
+ ░░░███████░   █████        ██████████ █████  ░░█████░░█████████ ░░█████████  ███████████ █████    █████    ██████████
+   ░░░░░░░    ░░░░░        ░░░░░░░░░░ ░░░░░    ░░░░░  ░░░░░░░░░   ░░░░░░░░░  ░░░░░░░░░░░ ░░░░░    ░░░░░    ░░░░░░░░░░ "
+echo""
+echo""
+echo""
+echo""
+  echo ""
+  echo "=== MENU PRINCIPAL ==="
+  echo "0. coffre-fort"
+  echo "1. hash"
+  echo "2. chiffrement symétrique"
+  echo "3. déchiffrement symétrique"
+  echo "4. génération des paires de clé"
+  echo "5. chiffrement asymétrique RSA "
+  echo "6. déchiffrement aysmétrique RSA "
+  echo "7. generer pki 3 niveau"
+  echo "8. signature"
+  echo "9. autres"
+  echo "10. Quitter"
+  read -p "Ton choix: " choix
+
+  case $choix in
+   0)
+      if [ -f "./cadena" ]; then
+        bash ./cadena
+      else
+        echo "./cadena introuvable."
+      fi
+      ;;
+
+    1)
+      if [ -f "./hash" ]; then
+        bash ./hash
+      else
+        echo "./hash introuvable."
+      fi
+      ;;
+    2)
+      if [ -f "./chiffrement" ]; then
+        bash ./chiffrement
+      else
+        echo "./chiffrement introuvable."
+      fi
+      ;;
+    3)  
+      if [ -f "./dechiffrement" ]; then
+        bash ./dechiffrement
+      else
+        echo "./dechiffrement introuvable."
+      fi
+      ;;
+    4)  
+      if [ -f "./genekey" ]; then
+        bash ./genekey
+      else
+        echo "./genekey introuvable."
+      fi
+      ;;
+    5)  
+      if [ -f "./aschiffrement" ]; then
+        bash ./aschiffrement
+      else
+        echo "./aschiffrement introuvable."
+      fi
+      ;;
+    6)  
+      if [ -f "./desaschiffrement" ]; then
+        bash ./desaschiffrement
+      else
+        echo "./desaschiffrement introuvable."
+      fi
+      ;;
+
+    7)  
+      if [ -f "./pki" ]; then
+        bash ./pki
+      else
+        echo "./pki introuvable."
+      fi
+      ;;
+    8)  
+      if [ -f "./signature" ]; then
+        bash ./signature
+      else
+        echo "./signature introuvable."
+      fi
+      ;;
+    9)  
+      if [ -f "./autres" ]; then
+        bash ./autres
+      else
+        echo "./autres introuvable."
+      fi
+      ;;
+    10)
+	clear
+       echo -e " ███████████     █████ █████    ██████████    ███    ███
+░░███░░░░░███   ░░███ ░░███    ░░███░░░░░█   ░███   ░███
+ ░███    ░███    ░░███ ███      ░███  █ ░    ░███   ░███
+ ░██████████      ░░█████       ░██████      ░███   ░███
+ ░███░░░░░███      ░░███        ░███░░█      ░███   ░███
+ ░███    ░███       ░███        ░███ ░   █   ░░░    ░░░ 
+ ███████████        █████       ██████████    ███    ███
+░░░░░░░░░░░        ░░░░░       ░░░░░░░░░░    ░░░    ░░░ " ; break ;;
+    *) 
+      echo "Choix invalide, essaie encore."
+      ;;
+  esac
+done
+

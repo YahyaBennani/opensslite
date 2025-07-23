@@ -1,0 +1,95 @@
+#!/bin/bash
+clear
+# Algorithmes supportés
+algos=("md5" "sha1" "sha224" "sha256" "sha384" "sha512" \
+       "sha3-224" "sha3-256" "sha3-384" "sha3-512" \
+       "blake2b512" "blake2s256" "rmd160")
+
+# Algorithmes compatibles HMAC
+hmac_algos=("md5" "sha1" "sha224" "sha256" "sha384" "sha512" "rmd160")
+
+while true; do
+echo""
+echo""
+echo"" 
+ echo""
+  echo " █████   █████   █████████    █████████  █████   █████
+░░███   ░░███   ███░░░░░███  ███░░░░░███░░███   ░░███ 
+ ░███    ░███  ░███    ░███ ░███    ░░░  ░███    ░███ 
+ ░███████████  ░███████████ ░░█████████  ░███████████ 
+ ░███░░░░░███  ░███░░░░░███  ░░░░░░░░███ ░███░░░░░███ 
+ ░███    ░███  ░███    ░███  ███    ░███ ░███    ░███ 
+ █████   █████ █████   █████░░█████████  █████   █████
+░░░░░   ░░░░░ ░░░░░   ░░░░░  ░░░░░░░░░  ░░░░░   ░░░░░ "
+echo""
+echo""
+echo""
+echo""
+  echo ""
+  echo "=== Algorithmes disponibles pour OpenSSL dgst ==="
+  echo "1. MD5"
+  echo "2. SHA-1"
+  echo "3. SHA-2 (224 bits)"
+  echo "4. SHA-2 (256 bits)"
+  echo "5. SHA-2 (384 bits)"
+  echo "6. SHA-2 (512 bits)"
+  echo "7. SHA-3 (224 bits, no hmac)"
+  echo "8. SHA-3 (256 bits, no hmac)"
+  echo "9. SHA-3 (384 bits, no hmac)"
+  echo "10. SHA-3 (512 bits, no hmac)"
+  echo "11. BLAKE2 (512 bits, no hmac)"
+  echo "12. BLAKE2 (256 bits, no hmac)"
+  echo "13. RIPEMD-160"
+  echo "14. Retour"
+  echo "==============================================="
+
+  read -p "Ton choix [1-14] : " choix
+
+  if [[ "$choix" -eq 14 ]]; then
+    clear
+bash ./project
+break
+  fi
+echo ""
+echo ""
+echo ""
+  if [[ "$choix" -lt 1 || "$choix" -gt 13 ]]; then
+    echo "❌ Choix invalide."
+    continue
+  fi
+echo ""
+echo "" 
+echo ""
+  algo="${algos[$((choix-1))]}"
+
+  read -p "Souhaitez-vous utiliser HMAC ? [Y/N] : " hmac
+
+  # Lire la clé si HMAC demandé
+  if [[ "$hmac" == "Y" || "$hmac" == "y" ]]; then
+    # Vérifier si l’algo supporte HMAC
+    if [[ " ${hmac_algos[@]} " =~ " $algo " ]]; then
+      read -p "Clé secrète HMAC : " key
+    else
+      echo "❌ L'algorithme $algo ne supporte pas HMAC."
+      continue
+    fi
+  fi
+
+  # Lire le fichier
+  read -p "Chemin du fichier à hacher : " fichier
+  if [ ! -f "$fichier" ]; then
+    echo "❌ Fichier introuvable ou chemin invalide."
+    continue
+  fi
+
+  echo "[+] Hashing en cours avec $algo..."
+
+  # Exécution avec ou sans HMAC
+  if [[ "$hmac" == "Y" || "$hmac" == "y" ]]; then
+    openssl dgst -"$algo" -hmac "$key" "$fichier" | tee "${fichier}_hashed.txt"
+  else
+    openssl dgst -"$algo" "$fichier" | tee "${fichier}_hashed.txt"
+  fi
+  echo "le resultat est enregistrer dans ${fichier}_hashed.txt"
+done
+

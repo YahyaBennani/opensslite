@@ -1,0 +1,51 @@
+# poour generer une requete de certificat utilisateur
+
+
+[ req ]
+default_bits		= 2048
+default_keyfile 	= private/user.key
+default_md		= md5
+distinguished_name	= req_distinguished_name
+x509_extensions		= user_req
+string_mask		= nombstr
+
+[ req_distinguished_name ]
+countryName			= Pays
+countryName_min			= 2
+countryName_max			= 2
+
+stateOrProvinceName		= Etat, province ou departement
+
+localityName			= Ville
+
+organizationName		= Organisation
+
+organizationalUnitName		= Unite organisationnelle
+
+commonName			= Nom commun
+commonName_max			= 64
+
+emailAddress			= Adresse mail
+emailAddress_max		= 64
+
+
+
+[ user_req ]
+
+
+basicConstraints	= critical, CA:false
+subjectKeyIdentifier	= hash
+keyUsage		= digitalSignature, nonRepudiation, keyEncipherment
+extendedKeyUsage	= clientAuth, emailProtection
+nsCertType		= client, email
+# nsComment		= "Requete de signature de certificat"
+
+subjectAltName		= email:copy
+#issuerAltName		=issuer:copy
+
+#nsCaRevocationUrl		= http://www.domain.dom/ca-crl.pem
+#nsBaseUrl
+nsRevocationUrl	= ldap://mesange.ensi-bourges.fr:9009/ou=PKI,o=INT,c=FR?certificateRevocationList?sub?(cn=CRL)
+#nsRenewalUrl
+#nsCaPolicyUrl
+#nsSslServerName

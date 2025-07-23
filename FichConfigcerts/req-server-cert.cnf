@@ -1,0 +1,47 @@
+# pour generer une requete de certificat serveur
+
+
+[ req ]
+default_bits		= 1024
+default_keyfile 	= private/server.key
+default_md		= md5
+distinguished_name	= req_distinguished_name
+x509_extensions		= server_req
+string_mask		= nombstr
+
+[ req_distinguished_name ]
+countryName			= Pays
+countryName_default		= FR
+countryName_min			= 2
+countryName_max			= 2
+
+stateOrProvinceName		= Etat, province ou departement
+stateOrProvinceName_default	= Cher
+
+localityName			= Ville
+localityName_default		= Bourges
+
+organizationName		= Organisation
+organizationName_default	= ENSIB
+
+organizationalUnitName		= Unite organisationnelle
+organizationalUnitName_default	= STI
+
+commonName			= Nom commun (ex: nom de la root CA)
+commonName_max			= 64
+
+emailAddress			= Adresse mail
+emailAddress_max		= 64
+
+
+
+[ server_req ]
+
+
+basicConstraints	= critical, CA:false
+subjectKeyIdentifier	= hash
+keyUsage		= digitalSignature, keyEncipherment
+extendedKeyUsage	= serverAuth, clientAuth
+nsCertType		= server
+# nsComment		= "Requete de signature de certificat"
+# subjectAltName	= email:copy
